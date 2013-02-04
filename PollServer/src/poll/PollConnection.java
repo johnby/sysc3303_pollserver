@@ -8,8 +8,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.Socket;
 import java.util.ArrayList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import questions.Question;
 
@@ -20,6 +30,7 @@ public class PollConnection extends Thread {
 	private boolean active=true;
 	private BufferedReader reader = null;
 	private PrintWriter writer = null;
+	private String pollersEmail = null;
 	
 	public PollConnection(PollManager pollManager, Socket newSocket) throws IOException {
 		this.pollManager = pollManager;
@@ -47,7 +58,7 @@ public class PollConnection extends Thread {
 			try {
 				if((message = reader.readLine())!=null)
 				{
-					processMessage(message);
+					processMessage(new String(message));
 				}
 			} catch (IOException e) {
 				
@@ -67,21 +78,62 @@ public class PollConnection extends Thread {
 	 * Determine what message means
 	 */
 	private void processMessage(String message) {
-		
-		System.out.println("Msg Recieved:" + message);
-		
-		if(message.equals("get questions"))		
-		{
 
+		System.out.println("Debug: Msg Recieved: " + message);
+
+		try {
+			DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		    InputSource is = new InputSource();
+		    is.setCharacterStream(new StringReader(message));
+			
+			Document doc = db.parse(is);
+			
+			String messageType = doc.getDocumentElement().getNodeName();
+			
+			if(messageType.equals("connect"))
+			{
+				processConnectMessage(doc);
+			}
+			
+			
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
 	}
+
+	/*
+	 * Process a connect message
+	 * get user email address
+	 * send question information
+	 */
+	private void processConnectMessage(Document doc)
+	{
+		NodeList email = doc.getElementsByTagName("email");
+		
+		// set email based on connect message
+		if(email != null && email.getLength() > 0)
+		{
+			this.pollersEmail = email.item(0).getTextContent();
+		}
+		
+		sendQuestions(this.pollManager.getQuestions());
+	}
+		
 
 	/*
 	 * Send the client available questions.
 	 */
 	public void sendQuestions(ArrayList<Question> questions) {
 		synchronized (this) {
-			writer.println("some questions\n");
+			writer.println(MessageFactory.createQuestionMessage(questions));
 		}
 	}
 

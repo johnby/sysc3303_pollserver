@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import questions.Question;
 import questions.QuestionManager;
 
 public class PollManager {
@@ -27,7 +28,7 @@ public class PollManager {
 			connection = new PollConnection(this, newSocket);
 			connections.add(connection);
 			connection.start();
-			connection.sendQuestions(questionManager.getQuestions());
+			//connection.sendQuestions(questionManager.getQuestions());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -54,6 +55,10 @@ public class PollManager {
 			poller.disconnect();
 		}
 		
+	}
+
+	public ArrayList<Question> getQuestions() {
+		return questionManager.getQuestions();
 	}
 	
 

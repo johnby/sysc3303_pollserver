@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import poll.MessageFactory;
 import poll.PollManager;
 
 public class Client {
@@ -122,12 +123,16 @@ public class Client {
 			e.printStackTrace();
 		}
 		
+		// send a connection message indicating email address
+		this.writer.println(MessageFactory.createConnectMessage("test@email.ca"));
+		
+		// wait for validation
 		boolean recInput = false;
 		String input = null;
 		try {
 			while(!recInput && (input=this.reader.readLine()) != null)
 			{
-				assertTrue(input.equals("some questions"));
+				System.out.println(input);
 				recInput = true;
 			}
 		} catch (IOException e1) {
@@ -168,7 +173,7 @@ public class Client {
 		
 	}
 	
-	@Test
+	//@Test
 	public void multipleConnectToServerTest() throws UnknownHostException, IOException {
 		
 		ArrayList<Socket> socketList = new ArrayList<Socket>();
