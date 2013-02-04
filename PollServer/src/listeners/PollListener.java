@@ -28,7 +28,7 @@ public class PollListener extends Thread {
 			try {
 				Socket newSocket = serverSocket.accept();
 				pollManager.addNewConnection(newSocket);
-			} catch (SocketException e2)
+				} catch (SocketException e2)
 			{
 				active = false;
 			} catch (IOException e) {

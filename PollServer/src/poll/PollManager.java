@@ -42,8 +42,9 @@ public class PollManager {
 	/*
 	 * Create a poll for poller with question questionIndex (ask QuestionManager)
 	 */
-	public void createPoll(PollConnection poller, String email, int questionIndex)
+	public Poll createPoll(PollConnection poller, String email, int questionIndex)
 	{
+		return null;
 		
 	}
 
