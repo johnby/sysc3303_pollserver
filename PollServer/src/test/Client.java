@@ -124,7 +124,7 @@ public class Client {
 		}
 		
 		// send a connection message indicating email address
-		this.writer.println(MessageFactory.createConnectMessage("test@email.ca"));
+		this.writer.println(MessageFactory.getConnectMessage("test@email.ca"));
 		
 		// wait for validation
 		boolean recInput = false;
@@ -134,6 +134,45 @@ public class Client {
 			{
 				System.out.println(input);
 				recInput = true;
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void testCreatePoll() throws IOException
+	{
+		Socket socket = null;
+		try {
+			socket = connectToServer();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// send a connection message indicating email address
+		this.writer.println(MessageFactory.getConnectMessage("test@email.ca"));
+		
+		// send a createpoll message
+		this.writer.println(MessageFactory.getCreatePollMessage(0));
+		
+		// wait for validation
+		int recInput = 0;
+		String input = null;
+		try {
+			while((recInput < 2) && (input=this.reader.readLine()) != null)
+			{
+				System.out.println(input);
+				recInput++;
 			}
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block

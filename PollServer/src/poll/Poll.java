@@ -39,4 +39,9 @@ public class Poll {
 			votes.put(user, new Vote(this.pollId, selection, user));
 		}
 	}
+	
+	public String getPollId()
+	{
+		return this.pollId;
+	}
 }

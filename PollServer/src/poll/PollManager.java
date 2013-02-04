@@ -1,8 +1,11 @@
 package poll;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import questions.Question;
 import questions.QuestionManager;
@@ -11,11 +14,15 @@ public class PollManager {
 
 	private ArrayList<PollConnection> connections = null;
 	private QuestionManager questionManager = null;
+	private Hashtable<String, Poll> polls = null;
+	
+	private SecureRandom random = new SecureRandom();
 	
 	public PollManager()
 	{
 		connections = new ArrayList<PollConnection>();
 		questionManager = new QuestionManager();
+		polls = new Hashtable<String, Poll>();
 	}
 	
 	/*
@@ -45,8 +52,11 @@ public class PollManager {
 	 */
 	public Poll createPoll(PollConnection poller, String email, int questionIndex)
 	{
-		return null;
+		String pollId = generatePollId();
+		Poll poll = new Poll(pollId, email, questionManager.getQuestion(questionIndex));
+		System.out.println("Create poll = \n\n\n\n" + pollId);
 		
+		return poll;
 	}
 
 	public void shutdown() {
@@ -62,5 +72,9 @@ public class PollManager {
 	}
 	
 
+	public String generatePollId()
+	{
+		return new BigInteger(128, random).toString(32).substring(0, 5);
+	}
 
 }

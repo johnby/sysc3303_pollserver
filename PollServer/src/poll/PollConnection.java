@@ -93,6 +93,9 @@ public class PollConnection extends Thread {
 			if(messageType.equals("connect"))
 			{
 				processConnectMessage(doc);
+			} else if(messageType.equals("createPoll"))
+			{
+				processCreatePollMessage(doc);
 			}
 			
 			
@@ -126,14 +129,34 @@ public class PollConnection extends Thread {
 		
 		sendQuestions(this.pollManager.getQuestions());
 	}
-		
+	
+	/*
+	 * Process create poll message
+	 */
+	private void processCreatePollMessage(Document doc)
+	{
+
+		NodeList questionId = doc.getElementsByTagName("question");
+		if(questionId != null)
+		{
+			int questionIndex = Integer.parseInt(questionId.item(0).getTextContent());		
+			Poll p = pollManager.createPoll(this, this.pollersEmail, questionIndex);
+			sendCreatePollConfirmation(p);
+		}
+	}
+
+	private void sendCreatePollConfirmation(Poll p) {
+		synchronized (this) {
+			writer.println(MessageFactory.getCreatePollMessageConfirmation(p.getPollId()));
+		}
+	}
 
 	/*
 	 * Send the client available questions.
 	 */
 	public void sendQuestions(ArrayList<Question> questions) {
 		synchronized (this) {
-			writer.println(MessageFactory.createQuestionMessage(questions));
+			writer.println(MessageFactory.getQuestionMessage(questions));
 		}
 	}
 
