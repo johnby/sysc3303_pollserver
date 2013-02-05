@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.net.SocketException;
 
 import poll.PollManager;
 
@@ -27,7 +28,13 @@ public class Main {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		VoteListener voteListener = new VoteListener(votePort, manager);
+		VoteListener voteListener = null;
+		try {
+			voteListener = new VoteListener(votePort, manager);
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		pollListener.start();
 		voteListener.start();

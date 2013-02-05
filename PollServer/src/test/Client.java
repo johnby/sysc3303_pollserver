@@ -11,7 +11,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
@@ -61,7 +66,12 @@ public class Client {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		voteListener = new VoteListener(votePort, manager);
+		try {
+			voteListener = new VoteListener(votePort, manager);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		pollListener.start();
 		voteListener.start();
@@ -94,6 +104,86 @@ public class Client {
 		} finally
 		{
 			voteListener.quit();
+		}
+	}
+	
+	@Test
+	public void testVote()
+	{
+		String pollId = null;
+		Socket socket = null;
+		try {
+			socket = connectToServer();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// send a connection message indicating email address
+		this.writer.println(MessageFactory.getConnectMessage("test@email.ca"));
+		
+		// send a createPoll message
+		this.writer.println(MessageFactory.getCreatePollMessage(0));
+		
+		// wait for validation
+		boolean recCreatePollReply = false;
+		int messagesReceived = 0;
+		String input = null;
+		try {
+			while(!recCreatePollReply && (input=this.reader.readLine()) != null)
+			{
+				messagesReceived++;
+				System.out.println("Client: Received: " + input);
+				
+				Document doc = MessageFactory.stringToXmlDoc(input);
+				
+				assertNotNull(doc);
+				
+				if(doc != null && messagesReceived==2)
+				{
+					String messageType = doc.getDocumentElement().getNodeName();
+					assertEquals(messageType, "createPollReply");
+					recCreatePollReply = true;
+					pollId = doc.getElementsByTagName("pollId").item(0).getTextContent();
+				}
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// poll is now created - attempt to vote on it
+		DatagramSocket sendSocket = null;
+		try {
+			sendSocket = new DatagramSocket();
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		String message = MessageFactory.getVoteMessage(pollId, "a");
+
+		DatagramPacket sendPacket = null;
+		try {
+			sendPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, InetAddress.getLocalHost() , this.votePort);
+		} catch (UnknownHostException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		try {
+			sendSocket.send(sendPacket);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		sendSocket.close();
+		
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -154,9 +244,9 @@ public class Client {
 			while(!recCreatePollReply && (input=this.reader.readLine()) != null)
 			{
 				messagesReceived++;
-				System.out.println(input);
+				System.out.println("Client: Received: " + input);
 				
-				Document doc = Client.stringToXmlDoc(input);
+				Document doc = MessageFactory.stringToXmlDoc(input);
 				
 				assertNotNull(doc);
 				
@@ -184,7 +274,7 @@ public class Client {
 		try {
 			while(continueLoop && (input=this.reader.readLine()) != null)
 			{
-				Document doc = Client.stringToXmlDoc(input);
+				Document doc = MessageFactory.stringToXmlDoc(input);
 				String messageType = doc.getDocumentElement().getNodeName();
 				assertEquals(messageType, "pausePollReply");
 				continueLoop = false;
@@ -206,7 +296,7 @@ public class Client {
 		try {
 			while(continueLoop && (input=this.reader.readLine()) != null)
 			{
-				Document doc = Client.stringToXmlDoc(input);
+				Document doc = MessageFactory.stringToXmlDoc(input);
 				String messageType = doc.getDocumentElement().getNodeName();
 				assertEquals(messageType, "resumePollReply");
 				continueLoop = false;
@@ -228,7 +318,7 @@ public class Client {
 		try {
 			while(continueLoop && (input=this.reader.readLine()) != null)
 			{
-				Document doc = Client.stringToXmlDoc(input);
+				Document doc = MessageFactory.stringToXmlDoc(input);
 				String messageType = doc.getDocumentElement().getNodeName();
 				assertEquals(messageType, "stopPollReply");
 				continueLoop = false;
@@ -269,9 +359,9 @@ public class Client {
 		try {
 			while(!recQuestions && (input=this.reader.readLine()) != null)
 			{
-				System.out.println(input);
+				System.out.println("Client: Received: " + input);
 				
-				Document doc = Client.stringToXmlDoc(input);
+				Document doc = MessageFactory.stringToXmlDoc(input);
 				
 				assertNotNull(doc);
 				
@@ -320,9 +410,9 @@ public class Client {
 			while(!recCreatePollReply && (input=this.reader.readLine()) != null)
 			{
 				messagesReceived++;
-				System.out.println(input);
+				System.out.println("Client: Received: " + input);
 				
-				Document doc = Client.stringToXmlDoc(input);
+				Document doc = MessageFactory.stringToXmlDoc(input);
 				
 				assertNotNull(doc);
 				
@@ -393,30 +483,6 @@ public class Client {
 		
 	}
 	
-	private static Document stringToXmlDoc(String xmlString)
-	{
-		DocumentBuilder db = null;
-		try {
-			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		} catch (ParserConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	    InputSource is = new InputSource();
-	    is.setCharacterStream(new StringReader(xmlString));
-		
-		Document doc = null;
-		try {
-			doc = db.parse(is);
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return doc;
-	}
+
 
 }

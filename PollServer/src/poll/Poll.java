@@ -12,6 +12,7 @@ public class Poll {
 	private Question question = null;
 	public enum STATE {OPEN,STOPPED,PAUSED};
 	
+	private Hashtable<String, Integer> talliedVotes = null;
 	private Poll.STATE state = Poll.STATE.OPEN;
 	
 	/*
@@ -23,6 +24,14 @@ public class Poll {
 		this.email = userEmail;
 		this.question = question;
 		votes = new Hashtable<String, Vote>();
+		talliedVotes = new Hashtable<String, Integer>();
+		
+		String[] answers = this.question.getAnswers();
+		for(int i=0; i<this.question.getAnswerCount();i++)
+		{
+			String selection = MessageFactory.getLetter(i);
+			talliedVotes.put(selection,0);
+		}
 	}
 	
 	/*
@@ -36,11 +45,17 @@ public class Poll {
 			{
 				if(!votes.get(user).getSelection().equals(selection))
 				{
+					int oldSelectionVotes = talliedVotes.get(votes.get(user).getSelection());
+					talliedVotes.put(votes.get(user).getSelection(), oldSelectionVotes-1);
+					int old = talliedVotes.get(selection);
+					talliedVotes.put(selection, old+1);
 					votes.get(user).setSelection(selection);
 				}
 			}
 			else
 			{
+				// new user
+				talliedVotes.put(selection, 1);
 				votes.put(user, new Vote(this.pollId, selection, user));
 			}
 			
@@ -73,5 +88,23 @@ public class Poll {
 	public void stop()
 	{
 		this.state = STATE.STOPPED;
+	}
+	
+	public String getStatus()
+	{
+		String status = "";
+		status += "PollId=" + this.pollId;
+		status += "; email=" + this.email;
+		status += "; status=" + this.state;
+		status += "\n Question=" + this.question.getQuestion();
+		
+		String[] answers = this.question.getAnswers();
+		for(int i=0; i<this.question.getAnswerCount();i++)
+		{
+			String selection = MessageFactory.getLetter(i);
+			status += "\n  " + selection + "." + answers[i] + " = " + talliedVotes.get(selection);
+		}
+
+		return status;
 	}
 }

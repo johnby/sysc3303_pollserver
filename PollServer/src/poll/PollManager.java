@@ -52,6 +52,7 @@ public class PollManager {
 		{
 			boolean result = this.polls.get(vote.getPollId()).Vote(vote.getSelection(), vote.getUser());
 			System.out.println("Server: Found poll. Poll addedd successfully = " + result);
+			System.out.println("Server: Poll Status\n" + this.polls.get(vote.getPollId()).getStatus());
 		}
 	}
 	
