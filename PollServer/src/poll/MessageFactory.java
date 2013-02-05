@@ -6,7 +6,7 @@ import questions.Question;
 
 public class MessageFactory {
 
-	public static final String alphabet = "abcdefghijklmnopqrstuvwxyz";
+	private static final String alphabet = "abcdefghijklmnopqrstuvwxyz";
 	
 	/*
 	 * Generate a Connect message.
@@ -54,7 +54,7 @@ public class MessageFactory {
 	
 	public static String getCreatePollMessage(int index) {
 		String message = "<?xml version=\"1.0\"?>";
-		message += "<createPoll><question>" + index + "</question></createPoll>";
+		message += "<createPoll><questionId>" + index + "</questionId></createPoll>";
 		return message;
 	}
 	
@@ -62,6 +62,48 @@ public class MessageFactory {
 	{
 		String message = "<?xml version=\"1.0\"?>";
 		message += "<createPollReply><pollId>" + pollId + "</pollId></createPollReply>";
+		return message;
+	}
+	
+	public static String getPausePollMessage(String pollId)
+	{
+		String message = "<?xml version=\"1.0\"?>";
+		message += "<pausePoll><pollId>" + pollId + "</pollId></pausePoll>";
+		return message;
+	}
+	
+	public static String getPausePollReplyMessage(String pollId)
+	{
+		String message = "<?xml version=\"1.0\"?>";
+		message += "<pausePollReply><pollId>" + pollId + "</pollId></pausePollReply>";
+		return message;
+	}
+	
+	public static String getStopPollMessage(String pollId)
+	{
+		String message = "<?xml version=\"1.0\"?>";
+		message += "<stopPoll><pollId>" + pollId + "</pollId></stopPoll>";
+		return message;
+	}
+	
+	public static String getStopPollReplyMessage(String pollId)
+	{
+		String message = "<?xml version=\"1.0\"?>";
+		message += "<stopPollReply><pollId>" + pollId + "</pollId></stopPollReply>";
+		return message;
+	}
+	
+	public static String getResumePollMessage(String pollId)
+	{
+		String message = "<?xml version=\"1.0\"?>";
+		message += "<resumePoll><pollId>" + pollId + "</pollId></resumePoll>";
+		return message;
+	}
+	
+	public static String getResumePollReplyMessage(String pollId)
+	{
+		String message = "<?xml version=\"1.0\"?>";
+		message += "<resumePollReply><pollId>" + pollId + "</pollId></resumePollReply>";
 		return message;
 	}
 	
@@ -79,6 +121,4 @@ public class MessageFactory {
 			return MessageFactory.alphabet.substring(index, index+1);
 		}
 	}
-
-
 }

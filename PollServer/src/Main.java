@@ -17,16 +17,17 @@ public class Main {
 			
 		// TO-DO: take port as input parameter
 		int port = 7777;
+		int votePort = 7778;
 		
 		PollManager manager = new PollManager();
 		
 		PollListener pollListener = null;
 		try {
-			pollListener = new PollListener(port,manager);
+			pollListener = new PollListener(port, manager);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		VoteListener voteListener = new VoteListener(manager);
+		VoteListener voteListener = new VoteListener(votePort, manager);
 
 		pollListener.start();
 		voteListener.start();

@@ -10,6 +10,9 @@ public class Poll {
 	private String pollId = null;									// poll id
 	private String email = null;
 	private Question question = null;
+	public enum STATE {OPEN,STOPPED,PAUSED};
+	
+	private Poll.STATE state = Poll.STATE.OPEN;
 	
 	/*
 	 * Represents an active poll.
@@ -25,23 +28,50 @@ public class Poll {
 	/*
 	 * Vote for this poll.
 	 */
-	public void Vote(String selection, String user)
+	public boolean Vote(String selection, String user)
 	{
-		if(votes.containsKey(user))
+		if(this.state == STATE.OPEN)
 		{
-			if(!votes.get(user).getSelection().equals(selection))
+			if(votes.containsKey(user))
 			{
-				votes.get(user).setSelection(selection);
+				if(!votes.get(user).getSelection().equals(selection))
+				{
+					votes.get(user).setSelection(selection);
+				}
 			}
+			else
+			{
+				votes.put(user, new Vote(this.pollId, selection, user));
+			}
+			
+			return true;
 		}
 		else
 		{
-			votes.put(user, new Vote(this.pollId, selection, user));
+			return false;
 		}
 	}
 	
 	public String getPollId()
 	{
 		return this.pollId;
+	}
+	
+	public void pause()
+	{
+		this.state = Poll.STATE.PAUSED;
+	}
+	
+	public void resume()
+	{
+		if(this.state == STATE.OPEN)
+		{
+			this.state = STATE.PAUSED; 
+		}
+	}
+	
+	public void stop()
+	{
+		this.state = STATE.STOPPED;
 	}
 }

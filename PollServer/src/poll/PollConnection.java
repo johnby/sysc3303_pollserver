@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,10 +32,12 @@ public class PollConnection extends Thread {
 	private BufferedReader reader = null;
 	private PrintWriter writer = null;
 	private String pollersEmail = null;
+	private Hashtable<String, Poll> activePolls = null;
 	
 	public PollConnection(PollManager pollManager, Socket newSocket) throws IOException {
 		this.pollManager = pollManager;
 		this.socket = newSocket;
+		this.activePolls = new Hashtable<String, Poll>();
 		
 		// setup reader
 		InputStream inputstream = this.socket.getInputStream();
@@ -79,7 +82,7 @@ public class PollConnection extends Thread {
 	 */
 	private void processMessage(String message) {
 
-		System.out.println("Debug: Msg Recieved: " + message);
+		System.out.println("Server: Msg Recieved: " + message);
 
 		try {
 			DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -96,6 +99,15 @@ public class PollConnection extends Thread {
 			} else if(messageType.equals("createPoll"))
 			{
 				processCreatePollMessage(doc);
+			} else if(messageType.equals("pausePoll"))
+			{
+				processPausePollMessage(doc);
+			} else if(messageType.equals("resumePoll"))
+			{
+				processResumePollMessage(doc);
+			} else if(messageType.equals("stopPoll"))
+			{
+				processStopPollMessage(doc);
 			}
 			
 			
@@ -110,6 +122,49 @@ public class PollConnection extends Thread {
 			e.printStackTrace();
 		}
 
+	}
+
+	/*
+	 ***************************** RECEIVING MESSAGES BELOW ****************************
+	 */
+	
+	/*
+	 * Received Stop Poll message.
+	 */
+	private void processStopPollMessage(Document doc) {
+		String pollId = null;
+		pollId = doc.getElementsByTagName("pollId").item(0).getTextContent();
+		if(this.activePolls.containsKey(pollId))
+		{
+			this.activePolls.get(pollId).stop();
+			sendStopPollConfirmation(pollId);
+		}
+	}
+
+	/*
+	 * Received Resume Poll message.
+	 */
+	private void processResumePollMessage(Document doc) {
+		String pollId = null;
+		pollId = doc.getElementsByTagName("pollId").item(0).getTextContent();
+		if(this.activePolls.containsKey(pollId))
+		{
+			this.activePolls.get(pollId).resume();
+			sendResumePollConfirmation(pollId);
+		}
+	}
+
+	/*
+	 * Received Pause Poll message.
+	 */
+	private void processPausePollMessage(Document doc) {
+		String pollId = null;
+		pollId = doc.getElementsByTagName("pollId").item(0).getTextContent();
+		if(this.activePolls.containsKey(pollId))
+		{
+			this.activePolls.get(pollId).pause();
+			sendPausePollConfirmation(pollId);
+		}
 	}
 
 	/*
@@ -135,31 +190,52 @@ public class PollConnection extends Thread {
 	 */
 	private void processCreatePollMessage(Document doc)
 	{
-
-		NodeList questionId = doc.getElementsByTagName("question");
+		NodeList questionId = doc.getElementsByTagName("questionId");
 		if(questionId != null)
 		{
 			int questionIndex = Integer.parseInt(questionId.item(0).getTextContent());		
 			Poll p = pollManager.createPoll(this, this.pollersEmail, questionIndex);
+			this.activePolls.put(p.getPollId(), p);
 			sendCreatePollConfirmation(p);
 		}
 	}
 
+	
+	/*
+	 ***************************** SENDING MESSAGES BELOW ****************************
+	 */
+	
 	private void sendCreatePollConfirmation(Poll p) {
 		synchronized (this) {
 			writer.println(MessageFactory.getCreatePollMessageConfirmation(p.getPollId()));
 		}
 	}
 
-	/*
-	 * Send the client available questions.
-	 */
 	public void sendQuestions(ArrayList<Question> questions) {
 		synchronized (this) {
 			writer.println(MessageFactory.getQuestionMessage(questions));
 		}
 	}
+	
+	private void sendPausePollConfirmation(String pollId) {
+		synchronized (this) {
+			writer.println(MessageFactory.getPausePollReplyMessage(pollId));
+		}
+	}
+	
+	private void sendResumePollConfirmation(String pollId) {
+		synchronized (this) {
+			writer.println(MessageFactory.getResumePollReplyMessage(pollId));
+		}
+	}
+	
+	private void sendStopPollConfirmation(String pollId) {
+		synchronized (this) {
+			writer.println(MessageFactory.getStopPollReplyMessage(pollId));
+		}
+	}
 
+	// safely kill thread
 	public void disconnect() {
 		this.active = false;
 		try {
@@ -169,5 +245,4 @@ public class PollConnection extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
 }

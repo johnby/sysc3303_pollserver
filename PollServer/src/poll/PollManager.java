@@ -31,7 +31,7 @@ public class PollManager {
 	public void addNewConnection(Socket newSocket) {
 		PollConnection connection;
 		try {
-			System.out.println("New connection established.");
+			System.out.println("Server: New connection established.");
 			connection = new PollConnection(this, newSocket);
 			connections.add(connection);
 			connection.start();
@@ -42,9 +42,17 @@ public class PollManager {
 		}
 	}
 	
+	/*
+	 * Do something with a received vote.
+	 */
 	public void voteRecieved(Vote vote)
 	{
-		
+		System.out.println("Server: Received vote from " + vote.getUser() + " for poll " + vote.getPollId() + ", selected " + vote.getSelection());
+		if(this.polls.containsKey(vote.getPollId()))
+		{
+			boolean result = this.polls.get(vote.getPollId()).Vote(vote.getSelection(), vote.getUser());
+			System.out.println("Server: Found poll. Poll addedd successfully = " + result);
+		}
 	}
 	
 	/*
@@ -54,8 +62,8 @@ public class PollManager {
 	{
 		String pollId = generatePollId();
 		Poll poll = new Poll(pollId, email, questionManager.getQuestion(questionIndex));
-		System.out.println("Create poll = \n\n\n\n" + pollId);
-		
+		System.out.println("Server: Creating Poll with pollId=" + pollId);
+		this.polls.put(poll.getPollId(), poll);
 		return poll;
 	}
 
