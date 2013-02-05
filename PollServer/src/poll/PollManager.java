@@ -62,7 +62,7 @@ public class PollManager {
 	public Poll createPoll(PollConnection poller, String email, int questionIndex)
 	{
 		String pollId = generatePollId();
-		Poll poll = new Poll(pollId, email, questionManager.getQuestion(questionIndex));
+		Poll poll = new Poll(pollId, email, questionManager.getQuestion(questionIndex), questionIndex);
 		System.out.println("Server: Creating Poll with pollId=" + pollId);
 		this.polls.put(poll.getPollId(), poll);
 		return poll;

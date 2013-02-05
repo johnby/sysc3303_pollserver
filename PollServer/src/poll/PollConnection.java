@@ -207,7 +207,7 @@ public class PollConnection extends Thread {
 	
 	private void sendCreatePollConfirmation(Poll p) {
 		synchronized (this) {
-			writer.println(MessageFactory.getCreatePollMessageConfirmation(p.getPollId()));
+			writer.println(MessageFactory.getCreatePollMessageReply(p.getPollId(), p.getQuestionId()));
 		}
 	}
 

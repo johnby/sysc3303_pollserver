@@ -14,12 +14,14 @@ public class Poll {
 	
 	private Hashtable<String, Integer> talliedVotes = null;
 	private Poll.STATE state = Poll.STATE.OPEN;
+	private int questionId = 0;
 	
 	/*
 	 * Represents an active poll.
 	 */
-	public Poll(String pollId, String userEmail, Question question)
+	public Poll(String pollId, String userEmail, Question question, int questionId)
 	{
+		this.questionId = questionId;
 		this.pollId = pollId;
 		this.email = userEmail;
 		this.question = question;
@@ -106,5 +108,10 @@ public class Poll {
 		}
 
 		return status;
+	}
+	
+	public int getQuestionId()
+	{
+		return this.questionId;
 	}
 }

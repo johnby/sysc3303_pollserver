@@ -68,10 +68,10 @@ public class MessageFactory {
 		return message;
 	}
 	
-	public static String getCreatePollMessageConfirmation(String pollId)
+	public static String getCreatePollMessageReply(String pollId, int questionId)
 	{
 		String message = "<?xml version=\"1.0\"?>";
-		message += "<createPollReply><pollId>" + pollId + "</pollId></createPollReply>";
+		message += "<createPollReply><pollId>" + pollId + "</pollId><questionId>" + questionId + "</questionId></createPollReply>";
 		return message;
 	}
 	
