@@ -28,9 +28,11 @@ public class VoteListener extends Thread {
 	public void run()
 	{
 		while(this.active){
-			byte data[] = new byte[200];
-		    DatagramPacket recPacket = new DatagramPacket(data, data.length);
+			System.out.println("listening");
 			try {
+				byte data[] = new byte[200];
+			    DatagramPacket recPacket = new DatagramPacket(data, data.length);
+			    
 				recSocket.receive(recPacket);
 				
 				System.out.println("Server: VoteListener: message received.");
@@ -54,6 +56,8 @@ public class VoteListener extends Thread {
 				}
 				
 			} catch (IOException e) {
+				
+				System.out.println("error");
 				
 				if(this.recSocket.isClosed())
 				{

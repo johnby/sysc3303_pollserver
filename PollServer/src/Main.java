@@ -15,11 +15,21 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-			
+		
 		// TO-DO: take port as input parameter
 		int port = 7777;
 		int votePort = 7778;
 		
+		if(args.length == 1)
+		{
+			port = Integer.parseInt(args[0]);
+		}
+		else if(args.length >1)
+		{
+			port = Integer.parseInt(args[0]);
+			votePort = Integer.parseInt(args[1]);
+		}
+			
 		PollManager manager = new PollManager();
 		
 		PollListener pollListener = null;
